@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel = "icon" href = "assets/figures/overview.png" type = "image/x-icon">
+
+  <meta charset="utf-8">
+  <meta name="description"
+        content="Distilling Global Traversability Priors for Image-based Affordance Prediction in Off-road Environments">
+  <meta name="keywords" content="Off-road navigation, Traversability, Frontier estimation, Affordance, Satellite imagery">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta property="og:image" content="assets/figures/overview.png" />
+  <title>Distilling Global Traversability Priors</title>
+
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+
+  <style>
+    .line-height-adjust {
+            line-height: 1.1;
+        }
+
+        .button-shadow {
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+    .blockMobile {
+      display: none; /* Hide the component by default */
+    }
+
+    .image-overlay {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateX(30%) translateY(-50%);
+  }
+
+    @media only screen and (min-width: 768px) {
+      .blockMobile {
+        display: block; /* Show the component for screen width 768px and above (desktop) */
+      }
+    }
+
+    .showMobile {
+      display: none; /* Hide the component by default */
+    }
+
+    .bar-image {
+      max-width: 100px;
+      height: auto;
+    }
+
+    @media only screen and (max-width: 768px) {
+      .showMobile {
+        display: block; /* Show the component for screen width 768px and above (desktop) */
+      }
+
+      .image-overlay {
+      position: relative; /* Move the image below the text */
+      top: 0;
+      transform: none; /* Remove vertical centering */
+      margin-top: 20px; /* Space between text and image */
+      margin-right: 0; /* Remove right alignment */
+    }
+
+    .bar-image {
+      display: none;
+    }
+    }
+
+    #dynamic-content {
+  position: relative; /* Ensure the content sections are positioned relative to this container */
+  min-height: 200px; /* Optional: Set a minimum height to prevent collapsing before content is displayed */
+    }
+
+    #dynamic-content .content-section {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    #dynamic-content .content-section.active {
+      opacity: 1;
+      visibility: visible;
+      position: relative; /* Allow active content to influence the height of #dynamic-content */
+    }
+
+  </style>
+
+</head>
+<body>
+
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+      <a class="navbar-item" href="https://theairlab.org">
+      <span class="icon">
+          <i class="fas fa-home"></i>
+      </span>
+      </a>
+    </div>
+
+  </div>
+</nav>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-2 publication-title">Distilling Global Traversability Priors for Image-based Affordance Prediction in Off-road Environments</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://matthewjsiv.github.io/">Matthew Sivaprakasam</a><sup>1</sup>,</span>
+              <span class="author-block">
+                <a href="https://striest.github.io/">Samuel Triest</a><sup>1</sup>,</span>
+                <span class="author-block">
+                  <a href="">Micah Nye</a><sup>1</sup>,</span>
+                  <span class="author-block">
+                    <a href="">Deegan Atha</a><sup>2</sup>,</span>
+                    <span class="author-block">
+                      <a href="">Shehryar Khattak</a><sup>2</sup>,</span>
+                      <span class="author-block">
+                        <a href="">David Fan</a><sup>2</sup>,</span>
+                <span class="author-block">
+                  <a href="http://www.wangwenshan.com/">Wenshan Wang</a><sup>1</sup>,</span>
+              <span class="author-block">
+              <a href="https://theairlab.org/">Sebastian Scherer</a><sup>1</sup></span>
+
+          </div>
+
+          <div class="is-size-6 publication-authors">
+            <span class="author-block"><sup>1</sup>Robotics Institute, Carnegie Mellon University</a>,
+              <sup>2</sup>Field AI</a>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="assets/Self_supervised_Frontier_Estimation_IROS_2026_Final_compressed.pdf"
+                   class="external-link button is-normal ">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <!-- arXiv Link. TODO: fill in arXiv URL -->
+              <span class="link-block">
+                <a href="#"
+                   class="external-link button is-normal ">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <!-- Video Link. -->
+              <span class="link-block">
+                <a href="https://drive.google.com/file/d/1nMTh8xaU4cl1gyVGda8aWJpfmJ53GKwO/view?usp=sharing"
+                   class="external-link button is-normal ">
+                  <span class="icon">
+                      <i class="fab fa-youtube"></i>
+                  </span>
+                  <span>Video</span>
+                </a>
+              </span>
+              <!-- Code Link. TODO: fill in code URL
+              <span class="link-block">
+                <a href="#"
+                   class="external-link button is-normal ">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span> -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+</section>
+
+
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+
+        <img source src="assets/figures/overview.png" />
+
+      <h2 class="subtitle has-text-centered">
+        <span class="coolname">we distill global traversability priors from satellite imagery into long-range, traversability-aware frontiers predicted directly from first-person-view images.</span>
+      </h2>
+    </div>
+  </div>
+</section>
+
+<section class="hero is-small is-light">
+  <div class="hero-body">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Overview</h2>
+        <div class="content has-text-justified">
+          <p>
+          <!-- Standard methods for autonomous navigation in unstructured terrain are prone to myopic behaviors in long-horizon scenarios. The use of metric maps built from LiDAR or cameras provides necessary local geometry and semantic information but is strictly limited by depth sensing range. By discarding data beyond the mapping horizon robots suffer from suboptimal, short-sighted decisions. To recover this lost information, we focus on extracting long-range <b><i>xtraversability-aware</i></b>traversability-aware frontiers directly from first-person-view (FPV) images. By leveraging satellite imagery, we compute the set of feasible navigation paths for a dataset of image/pose pairs and use them to supervise our network, reducing the need for extensive human demonstration data. We demonstrate that this approach significantly improves performance in long-range off-road navigation over existing methods by more than 10% in various offline benchmarks and significantly reduces the number of human interventions incurred in a set of real-world experiments. -->
+          We propose a method for <b><i>long-range and traversability-aware</b></i> affordance learning and frontier estimation. We generate supervision data by creating satellite traversability maps, supervised using local traversability maps derived from human driving data. From these maps we generate several feasible long-range paths per pose, providing a more thorough set of demonstrations than human data alone. Representing these paths in polar coordinates allows us to supervise in the heading-space, circumventing the issues of depth-estimation noise and failed point tracks that hinder existing image-space methods. We demonstrate that this approach improves performance in long-range off-road navigation by more than 10% in various offline benchmarks and reduces the number of human interventions in a broad set of real-world experiments.
+        </p>
+        </div>
+      </div>
+    </div>
+    </div>
+</section>
+
+<section class="hero is-small">
+  <div class="hero-body">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Distilling Global Traversability into Frontiers</h2>
+        <div class="content has-text-justified">
+          <img source src="assets/figures/global_trav.png" />
+          <p>
+            We start with an off-road driving dataset and generate local traversability maps at each timestep using SALON, registering them together with RTK GPS. In parallel, high-resolution features are extracted from an RGB satellite map using DINOv2 and JAFAR. Using the registered map as supervision, Gaussian Process Regression predicts traversability values for the entire satellite map, even in areas the robot never visited.
+          </p>
+        </div>
+      </div>
+    </div>
+    </div>
+</section>
+
+<section class="hero is-small is-light">
+  <div class="hero-body">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Ground Truth Frontier Computation</h2>
+        <div class="content has-text-justified">
+          <img source src="assets/figures/frontier_compute.png" />
+          <p>
+            We plan paths on the global traversability map to a set of goals beyond the local mapping range. For each path, we find the furthest point that isn't occluded by lethal terrain and label its heading relative to the vehicle as a viable frontier, with a score based on the traversability of the whole path. This produces a richer source of supervision than human demonstration alone, instead capturing multiple viable frontiers per image.
+          </p>
+        </div>
+      </div>
+    </div>
+    </div>
+</section>
+
+<section class="hero is-small">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Qualitative Results</h2>
+          <div class="content has-text-justified">
+            <img source src="assets/figures/qualitative.png" />
+            <p>
+              Qualitative comparison of our method to Long Range Navigator (LRN). Noisy point tracks and terrain occlusions cause inaccurate training signals for LRN, resulting in false positives and missed frontiers. Training only on demonstration data causes our method to fail in scenarios with multiple frontiers. By incorporating planning-based supervision, our method is able to better distinguish multiple viable frontiers.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hero is-small is-light">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Real-World Experiments</h2>
+          <div class="content has-text-justified">
+            <img source src="assets/figures/realworld_exps.png" />
+            <p>
+              Resulting paths taken by our method and baselines in a subset of our real-world experiments on a Yamaha Viking ATV. Across five courses totaling over 1500 meters of autonomous driving, our method incurs the fewest total human interventions and takes the least total time to complete the courses.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hero">
+  <div class="hero-body">
+  <!-- Paper video. -->
+  <div class="columns is-centered has-text-centered">
+    <div class="column is-three-fifths">
+      <h2 class="title is-3">Video</h2>
+      <div class="publication-video">
+        <iframe src="https://drive.google.com/file/d/1nMTh8xaU4cl1gyVGda8aWJpfmJ53GKwO/preview" width="640" height="480" allow="autoplay"></iframe>
+    </div>
+  </div>
+  </div>
+  <!--Paper video-->
+
+</section>
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title is-3">BibTeX</h2>
+    <pre><code>
+      @inproceedings{sivaprakasam2026distilling,
+        title={Distilling Global Traversability Priors for Image-based Affordance Prediction in Off-road Environments},
+        author={Sivaprakasam, Matthew and Triest, Samuel and Nye, Micah and Atha, Deegan and Khattak, Shehryar and Fan, David and Wang, Wenshan and Scherer, Sebastian},
+        booktitle={IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+        year={2026},
+  }
+    </code></pre>
+  </div>
+</section>
+
+
+<style>
+  #blocks {
+      width:100%;
+      height:60px;
+      margin:0 auto;
+  }
+  #block1 {
+      height:33.33%;
+      width:30%;
+      float: left;
+  }
+  #block2 {
+      height:33.33%;
+      width:40%;
+      float: left;
+  }
+  #block3 {
+      height:33.33%;
+      width:30%;
+      float: right;
+  }
+</style>
+
+<footer class="footer">
+    <div class="container">
+        <div id="blocks">
+          <div id="block1">
+            <a href="https://theairlab.org/">
+              <img src="static/images/Horizontal@2x.png" alt="AirLab Logo" style="width:60%;">
+            </a>
+          </div>
+          <div id="block2">
+            <center>
+              <a class="button is-text" itemprop="linkedin" href="https://www.linkedin.com/company/10629296/admin/feed/posts/" target="_blank">
+                <i class="fab fa-linkedin fa-lg" style="height:100%;"></i>
+              </a>
+              <a class="button is-text" itemprop="facebook" href="https://www.facebook.com/airlabcmu/" target="_blank">
+                <i class="fab fa-facebook fa-lg" style="height:100%;"></i>
+              </a>
+              <a class="button is-text" itemprop="twitter" href="https://www.twitter.com/airlabcmu/" target="_blank">
+                <i class="fab fa-twitter fa-lg"></i>
+              </a>
+              <a class="button is-text" itemprop="medium" href="https://medium.com/airlabcmu" target="_blank">
+                <i class="fab fa-medium fa-lg"></i>
+              </a>
+              <a class="button is-text" itemprop="github" href="https://github.com/castacks" target="_blank">
+                <i class="fab fa-github fa-lg"></i>
+              </a>
+              <a class="button is-text" itemprop="bitbucket" href="https://bitbucket.org/castacks/" target="_blank">
+                <i class="fab fa-bitbucket fa-lg"></i>
+              </a>
+              <br>
+              <br>
+              <p class="" style="font-size: .65rem;">This webpage was adapted from the Nerfies templates,
+                  which is licensed under a
+                  <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+                  <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">
+                    <img alt="Creative Commons License" style="border-width:0; height: 0.65rem;" src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png" />
+                  </a>
+              </p>
+              <p class="" style="font-size: .65rem;">If you use the <a href="https://github.com/castacks/visafe">source code</a> of this webpage,
+                please also link back to the <a href="https://github.com/nerfies/nerfies.github.io">Nerfies source code</a> in your footer.</p>
+            </center>
+          </div>
+          <div id="block3">
+            <a href="https://www.ri.cmu.edu/">
+              <img src="static/images/riLogo2019.svg" alt="RI Logo" style="float: right;">
+            </a>
+          </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+  function showContent(option,section) {
+    const button = event.target;
+    const parentContainer = button.closest(".hero");
+
+    const sections = parentContainer.querySelectorAll(".content-section");
+    sections.forEach(contentSection => {
+      contentSection.classList.remove("active");
+    });
+
+    const selectedSection = document.getElementById(`content-${section}-${option}`);
+    if (selectedSection) {
+      selectedSection.classList.add("active");
+    }
+  }
+</script>
+
+
+</body>
+</html>
