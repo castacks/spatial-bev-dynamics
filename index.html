@@ -503,7 +503,7 @@
           </noscript>
 
           <div class="content has-text-justified">
-            <h3 class="title is-4">Recurrent BEV Cells</h3>
+            <h3 class="title is-4" id="bev-cells-heading">Recurrent BEV Cells</h3>
             <div>
               <div>
                 <p>
@@ -907,15 +907,16 @@
     if (overview.complete) layout(); else overview.addEventListener('load', layout);
     layout();
 
-    // Play the zoom once, the first time the figure is comfortably in view.
-    if (!reduceMotion && 'IntersectionObserver' in window) {
-      var played = false;
+    // Play the zoom once, when the "Recurrent BEV Cells" heading has scrolled up to
+    // about the middle of the screen (and the figure above it is still on screen).
+    var heading = document.getElementById('bev-cells-heading');
+    if (!reduceMotion && heading && 'IntersectionObserver' in window) {
       new IntersectionObserver(function (entries, obs) {
-        if (played || !entries[0].isIntersecting) return;
-        played = true;
+        if (!entries[0].isIntersecting || interacted) return;
+        if (stage.getBoundingClientRect().bottom <= 0) return;
         obs.disconnect();
-        setTimeout(function () { if (!interacted) go(true); }, 1200);
-      }, { threshold: 0.9 }).observe(stage);
+        setTimeout(function () { if (!interacted) go(true); }, 300);
+      }, { threshold: 1, rootMargin: '0px 0px -30% 0px' }).observe(heading);
     }
   })();
 </script>
