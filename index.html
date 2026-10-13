@@ -3,24 +3,973 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Work in Progress</title>
+  <meta name="description"
+        content="SpatialBEV: a learned off-road dynamics model that queries bird's-eye-view terrain features at every predicted state, reducing prediction error by 17.1% at speeds over 10 m/s. CoRL 2026.">
+  <meta name="keywords" content="Off-road navigation, Dynamics learning, Bird's-eye view, Perception, Robotics, MPPI">
+  <meta property="og:image" content="assets/figures/sbev_teaser.png" />
+  <title>Structured Perception Representations for Off-road Dynamics Learning</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans&display=swap"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+
+  <script defer src="./static/js/index.js"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+          onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '\\(', right: '\\)', display: false}]});"></script>
+
   <style>
-    html, body { height: 100%; margin: 0; }
-    body {
+    .publication-venue { margin: 0 auto; }
+
+    img[width][height] { height: auto; }
+    .svg-icon { width: 1em; height: 1em; fill: currentColor; vertical-align: -0.125em; overflow: visible; }
+    .svg-icon.is-lg { width: 1.33em; height: 1.33em; vertical-align: -0.25em; }
+
+    /* Sections share the figures' white background. A dark full-width rule and a
+       numbered, left-aligned title separate them instead of alternating grey bands. */
+    body { counter-reset: sec; }
+    .hero.is-small::before,
+    #BibTeX::before {
+      content: "";
+      display: block;
+      width: 100%;
+      max-width: 960px;
+      margin: 0 auto;
+      border-top: 1px solid #1f1f1f;
+    }
+    .hero.is-small .hero-body { padding-top: 3.5rem; padding-bottom: 3.5rem; }
+    .hero.is-small .column.is-four-fifths { flex: none; width: 100%; }
+    .hero.is-small h2.title.is-3 {
+      counter-increment: sec;
+      text-align: left;
+      font-size: 1.9rem;
+    }
+    .hero.is-small h2.title.is-3::before {
+      content: counter(sec, decimal-leading-zero);
+      display: block;
+      margin-bottom: 0.4rem;
+      font: 600 0.8rem/1 'Google Sans', sans-serif;
+      letter-spacing: 0.14em;
+      color: #229588;
+    }
+    .hero.is-small h3.title.is-4 { text-align: left; }
+
+    /* Table of contents in the left margin; appears once the reader scrolls past the video. */
+    .toc { display: none; }
+    @media screen and (min-width: 1280px) {
+      .toc {
+        display: block;
+        position: fixed;
+        top: 50%;
+        left: max(16px, calc(50% - 480px - 168px));
+        width: 140px;
+        transform: translateY(-50%);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+        z-index: 20;
+      }
+      .toc.visible { opacity: 1; pointer-events: auto; }
+    }
+    .toc ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid #e0e0e0; }
+    .toc a {
       display: flex;
-      align-items: center;
+      gap: 0.5rem;
+      margin-left: -1px;
+      padding: 0.3rem 0 0.3rem 0.75rem;
+      border-left: 2px solid transparent;
+      color: #8a8a8a;
+      font: 400 0.82rem/1.3 'Google Sans', sans-serif;
+    }
+    .toc a:hover { color: #333; }
+    .toc .num { font-size: 0.72rem; letter-spacing: 0.08em; padding-top: 0.08rem; }
+    .toc a.active { color: #1f1f1f; border-left-color: #229588; font-weight: 500; }
+    .toc a.active .num { color: #229588; }
+    @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+    .content .katex-display { margin: 1.25rem 0; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+
+    /* Method figure: zooms from the full model's Spatial Query box into the recurrent BEV cell. */
+    .zoom-stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1311 / 403;
+      overflow: hidden;
+      margin-top: 1.5rem;
+    }
+    .zoom-stage.ready { aspect-ratio: auto; }
+    .zoom-overview {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: auto;
+      will-change: transform, opacity;
+    }
+    .zoom-detail {
+      position: absolute;
+      top: 0;
+      opacity: 0;
+      visibility: hidden;
+      transform-origin: 0 0;
+      will-change: transform, opacity;
+    }
+    .zoom-detail img { display: block; width: 100%; height: 100%; }
+    .zoom-stage.zoomed .zoom-overview { opacity: 0; visibility: hidden; }
+    .zoom-stage.zoomed .zoom-detail { opacity: 1; visibility: visible; }
+    .zoom-hotspot {
+      position: absolute;
+      left: 59.4%; top: 58.6%; width: 8.9%; height: 19.4%;
+      padding: 0;
+      border: 2.5px solid #e8963a;
+      border-radius: 10px;
+      background: transparent;
+      cursor: zoom-in;
+      animation: hotspot-pulse 2s ease-out infinite;
+    }
+    .zoom-hotspot:focus-visible { outline: 2px solid #229588; outline-offset: 3px; }
+    .zoom-hotspot .hint {
+      position: absolute;
+      top: calc(100% + 6px); left: 50%;
+      transform: translateX(-50%);
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: #e8963a;
+      color: #fff;
+      font: 600 0.72rem/1.4 'Google Sans', sans-serif;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .zoom-stage.zoomed .zoom-hotspot { display: none; }
+    @keyframes hotspot-pulse {
+      0% { box-shadow: 0 0 0 0 rgba(232, 150, 58, 0.55); }
+      70% { box-shadow: 0 0 0 12px rgba(232, 150, 58, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(232, 150, 58, 0); }
+    }
+    @media (prefers-reduced-motion: reduce) { .zoom-hotspot { animation: none; } }
+    .zoom-toggle {
+      display: flex;
       justify-content: center;
+      gap: 4px;
+      margin: 0.75rem auto 0;
+      padding: 3px;
+      width: fit-content;
+      border: 1px solid #e3e3e3;
+      border-radius: 999px;
+    }
+    .zoom-toggle button {
+      padding: 0.3rem 0.9rem;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: #666;
+      font: 500 0.82rem/1.3 'Google Sans', sans-serif;
+      cursor: pointer;
+    }
+    .zoom-toggle button[aria-pressed="true"] { background: #229588; color: #fff; }
+
+    .figure-caption {
+      font-size: 0.9rem;
+      color: #555;
+      margin-top: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .results-table {
+      font-size: 0.85rem;
+      margin: 0 auto 0.5rem auto;
+    }
+    .results-table th, .results-table td {
+      text-align: center !important;
+      white-space: nowrap;
+    }
+    .results-table td:first-child, .results-table th:first-child { text-align: left !important; }
+    .results-table tr.ours { background: #eef7f5; }
+    .table-wrap { overflow-x: auto; }
+
+    /* Offline results: table with per-split reduction tiles beside it. */
+    .offline-results {
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      gap: 1.25rem;
+    }
+    .offline-results .table-wrap { flex: 0 1 auto; }
+    .offline-results .table { margin: 0; }
+    .gain-tiles {
+      flex: 0 0 215px;
+      display: grid;
+      grid-template-rows: auto repeat(4, 1fr);
+      gap: 0.5rem;
+      text-align: left;
+    }
+    .gain-tiles .gain-head {
+      font: 500 0.72rem/1.3 'Google Sans', sans-serif;
+      letter-spacing: 0.04em;
+      color: #777;
+    }
+    .gain-tile {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0.3rem 0.7rem;
+      border: 1px solid #e6e6e6;
+      border-left: 3px solid #229588;
+      border-radius: 6px;
       background: #fff;
-      color: #444;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      cursor: default;
+      transition: background 0.15s;
     }
-    @media (prefers-color-scheme: dark) {
-      body { background: #111; color: #bbb; }
+    .gain-tile:hover, .gain-tile:focus-visible { background: #eef6f5; outline: none; }
+    .gain-tile .top { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+    .gain-tile .split {
+      font: 600 0.7rem/1.2 'Google Sans', sans-serif;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #666;
     }
-    p { font-size: 1.25rem; letter-spacing: 0.05em; }
+    .gain-tile .value {
+      font: 700 1.2rem/1.15 'Google Sans', sans-serif;
+      color: #229588;
+      font-variant-numeric: tabular-nums;
+    }
+    .gain-tile .value small { font-size: 0.7rem; font-weight: 500; color: #888; margin-left: 0.2rem; }
+    .results-table .col-hl { background: #eef6f5 !important; }
+    @media screen and (max-width: 1087px) {
+      .offline-results { flex-direction: column-reverse; }
+      .gain-tiles { flex: none; grid-template-rows: none; grid-template-columns: repeat(4, 1fr); }
+      .gain-tiles .gain-head { grid-column: 1 / -1; }
+      .offline-results .table-wrap { align-self: center; max-width: 100%; }
+    }
+    @media screen and (max-width: 600px) {
+      .gain-tiles { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .map-tag {
+      display: inline-block;
+      padding: 0 0.35em;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .map-tag.sparse { background: #e8e8e8; color: #555; }
+    .map-tag.dense { background: #229588; color: #fff; }
+
+    .stat-row { margin-top: 1rem; }
+    .stat-row .stat-value {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #229588;
+      line-height: 1.1;
+    }
+    .stat-row .stat-label { font-size: 0.85rem; color: #555; }
+
+    #blocks {
+      width: 100%;
+      height: 60px;
+      margin: 0 auto;
+    }
+    #block1 { height: 33.33%; width: 30%; float: left; }
+    #block2 { height: 33.33%; width: 40%; float: left; }
+    #block3 { height: 33.33%; width: 30%; float: right; }
+    @media screen and (max-width: 768px) {
+      #blocks { height: auto; }
+      #block1, #block2, #block3 { float: none; width: 100%; height: auto; text-align: center; margin-bottom: 1.25rem; }
+      #block1 img { width: 45% !important; }
+      #block3 img { float: none !important; max-width: 70%; }
+    }
   </style>
 </head>
 <body>
-  <p>🚧 Work in progress 🚧</p>
+<!-- Icons: Font Awesome Free 6.5.2 by @fontawesome, https://fontawesome.com, license CC BY 4.0. -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="i-house" viewBox="0 0 576 512"><path d="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c0 2.7-.2 5.4-.5 8.1V472c0 22.1-17.9 40-40 40H456c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1H416 392c-22.1 0-40-17.9-40-40V448 384c0-17.7-14.3-32-32-32H256c-17.7 0-32 14.3-32 32v64 24c0 22.1-17.9 40-40 40H160 128.1c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2H104c-22.1 0-40-17.9-40-40V360c0-.9 0-1.9 .1-2.8V287.6H32c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"/></symbol>
+  <symbol id="i-file-pdf" viewBox="0 0 512 512"><path d="M0 64C0 28.7 28.7 0 64 0L224 0l0 128c0 17.7 14.3 32 32 32l128 0 0 144-208 0c-35.3 0-64 28.7-64 64l0 144-48 0c-35.3 0-64-28.7-64-64L0 64zm384 64l-128 0L256 0 384 128zM176 352l32 0c30.9 0 56 25.1 56 56s-25.1 56-56 56l-16 0 0 32c0 8.8-7.2 16-16 16s-16-7.2-16-16l0-48 0-80c0-8.8 7.2-16 16-16zm32 80c13.3 0 24-10.7 24-24s-10.7-24-24-24l-16 0 0 48 16 0zm96-80l32 0c26.5 0 48 21.5 48 48l0 64c0 26.5-21.5 48-48 48l-32 0c-8.8 0-16-7.2-16-16l0-128c0-8.8 7.2-16 16-16zm32 128c8.8 0 16-7.2 16-16l0-64c0-8.8-7.2-16-16-16l-16 0 0 96 16 0zm80-112c0-8.8 7.2-16 16-16l48 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-32 0 0 32 32 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-32 0 0 48c0 8.8-7.2 16-16 16s-16-7.2-16-16l0-64 0-64z"/></symbol>
+  <symbol id="i-youtube" viewBox="0 0 576 512"><path d="M549.655 124.083c-6.281-23.65-24.787-42.276-48.284-48.597C458.781 64 288 64 288 64S117.22 64 74.629 75.486c-23.497 6.322-42.003 24.947-48.284 48.597-11.412 42.867-11.412 132.305-11.412 132.305s0 89.438 11.412 132.305c6.281 23.65 24.787 41.5 48.284 47.821C117.22 448 288 448 288 448s170.78 0 213.371-11.486c23.497-6.321 42.003-24.171 48.284-47.821 11.412-42.867 11.412-132.305 11.412-132.305s0-89.438-11.412-132.305zm-317.51 213.508V175.185l142.739 81.205-142.739 81.201z"/></symbol>
+  <symbol id="i-github" viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></symbol>
+  <symbol id="i-linkedin" viewBox="0 0 448 512"><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"/></symbol>
+  <symbol id="i-facebook" viewBox="0 0 512 512"><path d="M512 256C512 114.6 397.4 0 256 0S0 114.6 0 256C0 376 82.7 476.8 194.2 504.5V334.2H141.4V256h52.8V222.3c0-87.1 39.4-127.5 125-127.5c16.2 0 44.2 3.2 55.7 6.4V172c-6-.6-16.5-1-29.6-1c-42 0-58.2 15.9-58.2 57.2V256h83.6l-14.4 78.2H287V510.1C413.8 494.8 512 386.9 512 256h0z"/></symbol>
+  <symbol id="i-twitter" viewBox="0 0 512 512"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></symbol>
+  <symbol id="i-medium" viewBox="0 0 640 512"><path d="M180.5,74.262C80.813,74.262,0,155.633,0,256S80.819,437.738,180.5,437.738,361,356.373,361,256,280.191,74.262,180.5,74.262Zm288.25,10.646c-49.845,0-90.245,76.619-90.245,171.095s40.406,171.1,90.251,171.1,90.251-76.619,90.251-171.1H559C559,161.5,518.6,84.908,468.752,84.908Zm139.506,17.821c-17.526,0-31.735,68.628-31.735,153.274s14.2,153.274,31.735,153.274S640,340.631,640,256C640,171.351,625.785,102.729,608.258,102.729Z"/></symbol>
+</svg>
+
+<nav class="navbar" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div class="navbar-menu">
+    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
+      <a class="navbar-item" href="https://theairlab.org">
+        <span class="icon">
+          <svg class="svg-icon" aria-hidden="true"><use href="#i-house"/></svg>
+        </span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-2 publication-title">Structured Perception Representations for Off-road Dynamics Learning</h1>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="">Micah Nye</a><sup>1</sup>,</span>
+            <span class="author-block">
+              <a href="https://striest.github.io/">Samuel Triest</a><sup>1</sup>,</span>
+            <span class="author-block">
+              <a href="https://matthewjsiv.github.io/">Matthew Sivaprakasam</a><sup>1</sup>,</span>
+            <span class="author-block">
+              <a href="">Isaiah Adu</a><sup>1,2</sup>,</span>
+            <span class="author-block">
+              <a href="https://theairlab.org/">Sebastian Scherer</a><sup>1</sup>,</span>
+            <span class="author-block">
+              <a href="http://www.wangwenshan.com/">Wenshan Wang</a><sup>1</sup></span>
+          </div>
+
+          <div class="is-size-6 publication-authors">
+            <span class="author-block"><sup>1</sup>The Robotics Institute, Carnegie Mellon University,</span>
+            <span class="author-block"><sup>2</sup>Pennsylvania State University</span>
+          </div>
+
+          <div class="is-size-5 publication-venue">
+            Conference on Robot Learning (CoRL) 2026
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- TODO: link the compiled paper PDF. -->
+              <span class="link-block">
+                <a href="#"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <svg class="svg-icon" aria-hidden="true"><use href="#i-file-pdf"/></svg>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <!-- TODO: arXiv URL -->
+              <span class="link-block">
+                <a href="#"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="#video"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <svg class="svg-icon" aria-hidden="true"><use href="#i-youtube"/></svg>
+                  </span>
+                  <span>Video</span>
+                </a>
+              </span>
+              <!-- TODO: code URL, or delete this button if no code release. -->
+              <span class="link-block">
+                <a href="#"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <svg class="svg-icon" aria-hidden="true"><use href="#i-github"/></svg>
+                  </span>
+                  <span>Code</span>
+                </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="hero teaser" id="video">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <video id="teaser" autoplay muted loop playsinline controls preload="auto"
+             poster="assets/videos/paper_poster.jpg" width="100%">
+        <source src="assets/videos/paper_video.mp4" type="video/mp4">
+      </video>
+      <h2 class="subtitle has-text-centered">
+        We ground a learned dynamics model in bird's-eye-view terrain maps, querying the features under each
+        predicted state to cut worst-case prediction error at speeds over 10&nbsp;m/s.
+      </h2>
+    </div>
+  </div>
+</section>
+
+
+<nav class="toc" aria-label="Table of contents">
+  <ol>
+    <li><a href="#abstract"><span class="num">01</span>Abstract</a></li>
+    <li><a href="#method"><span class="num">02</span>Method</a></li>
+    <li><a href="#long-tail"><span class="num">03</span>Long-tail Mining</a></li>
+    <li><a href="#offline"><span class="num">04</span>Offline Eval</a></li>
+    <li><a href="#benchmark-eval"><span class="num">05</span>Benchmark Eval</a></li>
+    <li><a href="#hardware"><span class="num">06</span>Hardware</a></li>
+    <li><a href="#BibTeX"><span class="num">&nbsp;&nbsp;</span>BibTeX</a></li>
+  </ol>
+</nav>
+
+<section class="hero is-small" id="abstract">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Abstract</h2>
+          <div class="content has-text-justified">
+            <p>
+              Autonomously navigating off-road terrain at high speed demands accurate control, which often relies on dynamics models that capture complex interactions between the robot and terrain. In off-road regimes, terrain interaction is a major component of the vehicle's dynamics. Prior work attempts to capture this effect by training learned models of the vehicle's dynamics, conditioned on its perception of the local environment. However, said conditioning is often overly simplistic, ignoring the spatial structure of the dynamics problem. Our approach, SpatialBEV, exploits this spatial structure. At each step, we query the bird's-eye-view (BEV) features around the predicted state, conditioning the next prediction on current geometric and semantic cues. We additionally present a benchmarking approach that mines a dataset's most difficult scenarios. On datasets collected across seasons, SpatialBEV reduces prediction error by 17.1%, compared to physics-based and learned baselines. We further evaluate on hardware on high-speed (&ge;10&nbsp;m/s) and geometrically challenging courses with a 25.3% reduction in maximum cross-track error.
+            </p>
+          </div>
+          <div class="columns is-mobile stat-row">
+            <div class="column">
+              <div class="stat-value">17.1%</div>
+              <div class="stat-label">lower prediction error</div>
+            </div>
+            <div class="column">
+              <div class="stat-value">25.3%</div>
+              <div class="stat-label">lower max cross-track error on challenging terrain geometry</div>
+            </div>
+            <div class="column">
+              <div class="stat-value">&ge;10&nbsp;m/s</div>
+              <div class="stat-label">hardware trials</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="hero is-small" id="method">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Method</h2>
+          <div class="content has-text-justified">
+            <p>
+              Prior work encodes a BEV map once, as a fixed context at the start of a rollout. At high speed the robot
+              covers large distances within one prediction horizon, so every step stays conditioned on the same initial
+              encoding rather than on the terrain the robot is actually about to drive over. SpatialBEV instead treats the
+              BEV map as a source of feedback at <i>every</i> prediction step. We further expand on our approach with formalism and extensive evaluations.
+            </p>
+          </div>
+          <div class="zoom-stage" id="method-zoom">
+            <img class="zoom-overview" src="assets/figures/sbev_arch.webp" width="1311" height="403" loading="lazy" decoding="async"
+                 alt="Architecture: a context RNN encodes state and action history, a predictor RNN rolls out future states, and both spatially query the BEV map at each prior or predicted position.">
+            <div class="zoom-detail" aria-hidden="true">
+              <img src="assets/figures/sbev_bev_cell.webp" width="1200" height="920" loading="lazy" decoding="async"
+                   alt="Recurrent BEV cell: the predicted state places a tire-track footprint on the BEV map, and the sampled features correct the hidden state and feed the next cell.">
+            </div>
+            <button type="button" class="zoom-hotspot" aria-label="Zoom into the spatial query: show the recurrent BEV cell">
+              <span class="hint">Zoom in</span>
+            </button>
+          </div>
+          <div class="zoom-toggle" role="group" aria-label="Method figure view">
+            <button type="button" data-view="overview" aria-pressed="true">Full model</button>
+            <button type="button" data-view="detail" aria-pressed="false">Recurrent BEV cell</button>
+          </div>
+          <p class="figure-caption has-text-centered" data-caption="overview">
+            A context RNN initializes the predictor from state and action history. At every step, both networks
+            spatially query the structured BEV map at the known or predicted position.
+          </p>
+          <p class="figure-caption has-text-centered" data-caption="detail" hidden>
+            Inside the spatial query: the next predicted state places a footprint over the BEV map, and the sampled
+            features correct the hidden state and feed the subsequent cell.
+          </p>
+          <noscript>
+            <img src="assets/figures/sbev_bev_cell.webp" width="1200" height="920" loading="lazy" decoding="async" style="max-width:480px"
+                 alt="Recurrent BEV cell: the predicted state places a tire-track footprint on the BEV map, and the sampled features correct the hidden state and feed the next cell.">
+          </noscript>
+
+          <div class="content has-text-justified">
+            <h3 class="title is-4">Recurrent BEV Cells</h3>
+            <div>
+              <div>
+                <p>
+                  Between consecutive RNN cells, we decode the hidden state into a predicted state and place the vehicle's
+                  tire-track footprint on the BEV map. Features under the footprint are bilinearly sampled and encoded
+                  into a context vector that is used twice:
+                </p>
+                <ol>
+                  <li><b>Correction:</b> it is added to the hidden state, so each prediction reflects the terrain at the newly predicted position.</li>
+                  <li><b>Conditioning:</b> it augments the next cell's action input, so the next step starts with its current terrain context.</li>
+                </ol>
+                <p>
+                  The BEV map stacks terrain elevation, surface normals and visual foundation model (VFM) features.
+                  Only the footprint is platform-specific; a legged or tracked robot just swaps in its own contact pattern.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="hero is-small" id="long-tail">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Mining Long-tail Failures</h2>
+          <div class="content has-text-justified">
+            <p>
+              Aggregate metrics are dominated by easy, benign driving. This masks long-tail failure modes that determine real-world safety. To find these failure cases, where terrain likely matters, we
+              connect samples whose normalized action sequences and initial conditions fall within an
+              \(\mathcal{L}_2\) threshold (chosen by maximizing the mean silhouette coefficient) and partition the
+              resulting graph into cliques. Each group \(\mathcal{G}\) of \(N\) trajectories is scored by how much
+              its trajectories diverge, using the mean pairwise Hausdorff distance:
+            </p>
+            $$\bar{d}_H(\mathcal{G}) = \frac{1}{N(N-1)} \sum_{i=1}^{N} \sum_{j \neq i} d_H\!\left(\tau^i, \tau^j\right)$$
+            <p>
+              Sorting groups by this score ranks the dataset by difficulty, and the top \(p\)% of groups form the
+              hard benchmark \(\mathcal{D}_\text{hard} \subset \mathcal{D}\): same actions, different outcomes,
+              because of the terrain. The error metric itself is unchanged; only the distribution it is measured over
+              differs:
+            </p>
+            $$\text{err}_{\mathcal{D}} = \mathbb{E}_{\tau \sim \mathcal{D}}\left[\text{err}(\hat{\tau}, \tau)\right],
+              \qquad
+              \text{err}_{\text{hard}} = \mathbb{E}_{\tau \sim \mathcal{D}_\text{hard}}\left[\text{err}(\hat{\tau}, \tau)\right]$$
+            <img src="assets/figures/sbev_clustering.webp" width="1600" height="601" loading="lazy" decoding="async"
+                 alt="Three similar action sequences produce different trajectories: going downhill, on flat dirt, and on flat ice.">
+            <p class="figure-caption has-text-centered">
+              Similar actions, different trajectories. (C) travels further going downhill, (B) moves the least on flat
+              dirt, and (A) travels further on flat, low-friction ice.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="hero is-small" id="offline">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column">
+          <h2 class="title is-3">Offline Prediction</h2>
+          <div class="content has-text-justified">
+            <p>
+              We train on 2.2&nbsp;hr of spring, summer and fall driving at one site, then test on 2.1&nbsp;hr of
+              held-out data across two sites, 34% of it in winter with 6&ndash;9&Prime; of snow and thick ice never seen
+              in training. With dense maps, SpatialBEV reduces error relative to the strongest baseline on each split by
+              17.1% on Snow, 10.7% on Slopes, 19.9% on Speed and 17.1% overall.
+            </p>
+            <img src="assets/figures/sbev_offline_quant.webp" width="1600" height="688" loading="lazy" decoding="async"
+                 alt="Box plots of full-state prediction error on Snow, Slopes and Speed datasets for all methods.">
+            <p class="figure-caption has-text-centered">
+              Full-state prediction error on three sub-datasets. Snow is hardest for every method; dense maps reduce
+              both mean error and variance.
+            </p>
+          </div>
+          <div class="offline-results">
+            <div class="table-wrap">
+              <table class="table results-table is-narrow is-hoverable">
+                <thead>
+                  <tr>
+                    <th rowspan="2">Method</th><th rowspan="2">Map</th>
+                    <th colspan="2">Snow</th><th colspan="2">Slopes</th><th colspan="2">Speed</th><th colspan="2">Full</th>
+                  </tr>
+                  <tr>
+                    <th>MSE&nbsp;[m²]&nbsp;↓</th><th>P95&nbsp;↓</th>
+                    <th>MSE&nbsp;[m²]&nbsp;↓</th><th>P95&nbsp;↓</th>
+                    <th>MSE&nbsp;[m²]&nbsp;↓</th><th>P95&nbsp;↓</th>
+                    <th>MSE&nbsp;[m²]&nbsp;↓</th><th>P95&nbsp;↓</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>KBM</td><td>&ndash;</td><td>2.68 ± 4.23</td><td>8.92</td><td>2.31 ± 4.71</td><td>8.00</td><td>2.83 ± 6.52</td><td>10.24</td><td>2.10 ± 4.24</td><td>7.20</td></tr>
+                  <tr><td>State</td><td>&ndash;</td><td>2.54 ± 2.52</td><td>7.62</td><td>2.20 ± 3.15</td><td>7.48</td><td>1.91 ± 3.69</td><td>7.39</td><td>1.99 ± 2.75</td><td>6.71</td></tr>
+                  <tr><td>FPV</td><td>&ndash;</td><td>2.34 ± 2.37</td><td>6.93</td><td><u>1.69 ± 2.95</u></td><td><u>5.82</u></td><td>2.12 ± 4.55</td><td>7.82</td><td>1.77 ± 2.83</td><td>6.00</td></tr>
+                  <tr><td>Vanilla BEV</td><td><span class="map-tag sparse">sparse</span></td><td>2.49 ± 2.89</td><td>8.12</td><td>1.98 ± 3.39</td><td>7.20</td><td>1.59 ± 3.47</td><td>6.33</td><td>1.73 ± 2.87</td><td>6.66</td></tr>
+                  <tr><td>Vanilla BEV</td><td><span class="map-tag dense">dense</span></td><td><u>2.10 ± 2.44</u></td><td><u>6.76</u></td><td>1.97 ± 3.28</td><td>7.70</td><td><u>1.41 ± 2.93</u></td><td><u>5.17</u></td><td><u>1.46 ± 2.50</u></td><td><u>5.63</u></td></tr>
+                  <tr class="ours"><td>SpatialBEV (ours)</td><td><span class="map-tag sparse">sparse</span></td><td>2.45 ± 2.66</td><td>8.06</td><td>1.78 ± 2.51</td><td>6.87</td><td>1.50 ± 3.90</td><td>5.42</td><td>1.70 ± 2.68</td><td>6.26</td></tr>
+                  <tr class="ours"><td>SpatialBEV (ours)</td><td><span class="map-tag dense">dense</span></td><td><b>1.74 ± 1.98</b></td><td><b>5.55</b></td><td><b>1.51 ± 2.44</b></td><td><b>5.26</b></td><td><b>1.13 ± 2.95</b></td><td><b>3.58</b></td><td><b>1.21 ± 2.14</b></td><td><b>4.41</b></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="gain-tiles" aria-label="SpatialBEV (dense maps) error reduction versus the strongest baseline on each split">
+              <div class="gain-head">Ours (dense) vs. strongest baseline</div>
+              <div class="gain-tile" tabindex="0" data-split="0">
+                <span class="top"><span class="split">Snow</span><span class="value">&minus;17.1%<small>MSE</small></span></span>
+              </div>
+              <!-- Slopes: 10.7% follows from the table (FPV 1.69 -> 1.51); the paper text says 8.5%. -->
+              <div class="gain-tile" tabindex="0" data-split="1">
+                <span class="top"><span class="split">Slopes</span><span class="value">&minus;10.7%<small>MSE</small></span></span>
+              </div>
+              <div class="gain-tile" tabindex="0" data-split="2">
+                <span class="top"><span class="split">Speed</span><span class="value">&minus;19.9%<small>MSE</small></span></span>
+              </div>
+              <div class="gain-tile" tabindex="0" data-split="3">
+                <span class="top"><span class="split">Full</span><span class="value">&minus;17.1%<small>MSE</small></span></span>
+              </div>
+            </div>
+          </div>
+          <p class="figure-caption has-text-centered">Offline position prediction error. Best in <b>bold</b>, second best <u>underlined</u>.</p>
+
+          <h3 class="title is-4">Where does each model look?</h3>
+          <div class="content has-text-justified">
+            <img src="assets/figures/sbev_activation_maps.webp" width="1430" height="537" loading="lazy" decoding="async"
+                 alt="Vanilla BEV activation maps highlight irrelevant map regions, while SpatialBEV's queries follow the ground-truth trajectory.">
+            <p class="figure-caption has-text-centered">
+              Vanilla BEV's activations (left) fall on regions the robot never reaches. SpatialBEV's queries (right)
+              follow its prediction, which tracks the ground-truth path (white).
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="hero is-small" id="benchmark-eval">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Benchmark Evaluation</h2>
+          <div class="columns is-vcentered">
+            <div class="column content has-text-justified">
+              <p>
+                Does the benchmark actually find the hard cases? We split the test set into ten deciles by trajectory
+                variance, from highest (1st) to lowest (10th), and evaluate every model on each. Every model's worst-case
+                error is highest on the highest-variance decile and falls steadily from there, so the ranking tracks how
+                hard the data is to model. On the hardest decile, the FPV and state-only baselines degrade the most,
+                a long-tail failure that aggregate evaluation would hide.
+              </p>
+            </div>
+            <div class="column is-half">
+              <img src="assets/figures/sbev_clustering_variance.webp" width="1183" height="882" loading="lazy" decoding="async"
+                   alt="Worst-case prediction error for each method across trajectory-variance deciles, decreasing from the highest- to the lowest-variance decile.">
+              <p class="figure-caption has-text-centered">
+                Evaluation from the highest- to lowest-variance deciles of the clustered benchmark. Error falls with
+                variance for every model.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="hero is-small" id="hardware">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column">
+          <h2 class="title is-3">Closed-loop Control on Hardware</h2>
+          <div class="content has-text-justified">
+            <p>
+              We deploy each model inside an MPPI controller (825 samples at 10&nbsp;Hz) on a full-size Yamaha Viking
+              ATV, on a 739&nbsp;m high-speed course at a 10&nbsp;m/s target and a 524&nbsp;m course with steep slopes
+              and banked turns at 8&nbsp;m/s. The physics baseline understeers into repeated interventions;
+              SpatialBEV has the lowest worst-case cross-track error on the geometry course.
+            </p>
+          </div>
+          <video class="play-when-visible" muted loop playsinline controls preload="none"
+                 poster="assets/videos/hardware_poster.jpg" width="100%">
+            <source src="assets/videos/hardware_comparison.mp4" type="video/mp4">
+          </video>
+          <p class="figure-caption has-text-centered">Onboard rollouts from each model during closed-loop trials. Red panels mark interventions.</p>
+
+          <img src="assets/figures/sbev_online_qual.webp" width="1600" height="729" loading="lazy" decoding="async"
+               alt="Overhead paths of all methods on the high-speed and geometry courses, with labeled understeer events.">
+          <p class="figure-caption has-text-centered">
+            Paths on both courses. The KBM baseline understeers into interventions (A, D, E); every learned method,
+            including ours, understeers in the tightest turns (C, G).
+          </p>
+
+          <div class="table-wrap">
+            <table class="table results-table is-narrow is-hoverable">
+              <thead>
+                <tr>
+                  <th rowspan="2">Method</th>
+                  <th colspan="5">High Speed Course (1 trial)</th>
+                  <th colspan="5">Geometry Course (4 trials)</th>
+                </tr>
+                <tr>
+                  <th># Intv&nbsp;↓</th><th>vel. avg</th><th>vel. max</th><th>CTE avg&nbsp;↓</th><th>CTE max&nbsp;↓</th>
+                  <th># Intv&nbsp;↓</th><th>vel. avg</th><th>vel. max</th><th>CTE avg&nbsp;↓</th><th>CTE max&nbsp;↓</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>KBM</td><td>3.00</td><td>7.75</td><td>11.20</td><td>0.73</td><td>5.04</td><td>3.75</td><td>6.13</td><td>9.01</td><td>0.81</td><td>5.51</td></tr>
+                <tr><td>State</td><td><b>0.00</b></td><td>8.39</td><td>10.96</td><td><b>0.42</b></td><td><b>2.29</b></td><td><b>0.00</b></td><td>6.80</td><td>8.68</td><td>0.45</td><td>3.35</td></tr>
+                <tr><td>FPV</td><td><b>0.00</b></td><td>7.85</td><td>10.98</td><td>0.80</td><td>3.41</td><td>0.75</td><td>6.50</td><td>8.90</td><td>0.65</td><td>4.90</td></tr>
+                <tr><td>Vanilla BEV</td><td><b>0.00</b></td><td>8.44</td><td>10.94</td><td>0.47</td><td>3.26</td><td><b>0.00</b></td><td>6.94</td><td>8.60</td><td><b>0.43</b></td><td>3.67</td></tr>
+                <tr class="ours"><td>SpatialBEV (ours)</td><td>1.00*</td><td>8.02</td><td>10.41</td><td>0.51</td><td>2.62</td><td><b>0.00</b></td><td>6.58</td><td>8.66</td><td>0.60</td><td><b>2.74</b></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="figure-caption has-text-centered">
+            Hardware results; velocities in m/s, cross-track error (CTE) in m. *Diagnosed as an MPPI line-tracking
+            failure rather than a dynamics prediction error (see paper appendix).
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title is-3">BibTeX</h2>
+    <pre><code>@inproceedings{nye2026structured,
+  title={Structured Perception Representations for Off-road Dynamics Learning},
+  author={Nye, Micah and Triest, Samuel and Sivaprakasam, Matthew and Adu, Isaiah and Scherer, Sebastian and Wang, Wenshan},
+  booktitle={Conference on Robot Learning (CoRL)},
+  year={2026},
+}</code></pre>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div id="blocks">
+      <div id="block1">
+        <a href="https://theairlab.org/">
+          <img src="static/images/Horizontal@2x.png" alt="AirLab Logo" style="width:60%;">
+        </a>
+      </div>
+      <div id="block2">
+        <center>
+          <a class="button is-text" href="https://www.linkedin.com/company/10629296/" target="_blank">
+            <svg class="svg-icon is-lg" aria-hidden="true"><use href="#i-linkedin"/></svg>
+          </a>
+          <a class="button is-text" href="https://www.facebook.com/airlabcmu/" target="_blank">
+            <svg class="svg-icon is-lg" aria-hidden="true"><use href="#i-facebook"/></svg>
+          </a>
+          <a class="button is-text" href="https://www.twitter.com/airlabcmu/" target="_blank">
+            <svg class="svg-icon is-lg" aria-hidden="true"><use href="#i-twitter"/></svg>
+          </a>
+          <a class="button is-text" href="https://medium.com/airlabcmu" target="_blank">
+            <svg class="svg-icon is-lg" aria-hidden="true"><use href="#i-medium"/></svg>
+          </a>
+          <a class="button is-text" href="https://github.com/castacks" target="_blank">
+            <svg class="svg-icon is-lg" aria-hidden="true"><use href="#i-github"/></svg>
+          </a>
+          <br>
+          <br>
+          <p style="font-size: .65rem;">This webpage was adapted from the Nerfies template,
+            which is licensed under a
+            <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+          <p style="font-size: .65rem;">If you use the <a href="https://github.com/castacks/spatial-bev-dynamics">source code</a> of this webpage,
+            please also link back to the <a href="https://github.com/nerfies/nerfies.github.io">Nerfies source code</a> in your footer.</p>
+        </center>
+      </div>
+      <div id="block3">
+        <a href="https://www.ri.cmu.edu/">
+          <img src="static/images/riLogo2019.svg" alt="RI Logo" style="float: right;">
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+<script>
+  // Autoplay videos marked play-when-visible only while they are on screen.
+  (function () {
+    var videos = document.querySelectorAll('video.play-when-visible');
+    if (!('IntersectionObserver' in window)) {
+      videos.forEach(function (v) { v.preload = 'metadata'; });
+      return;
+    }
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        var v = entry.target;
+        if (entry.isIntersecting) { v.play().catch(function () {}); } else { v.pause(); }
+      });
+    }, { threshold: 0.35 });
+    videos.forEach(function (v) { observer.observe(v); });
+  })();
+</script>
+
+<script>
+  // Method figure: zoom from the full model's Spatial Query box into the recurrent BEV cell.
+  (function () {
+    var stage = document.getElementById('method-zoom');
+    var overview = stage.querySelector('.zoom-overview');
+    var detail = stage.querySelector('.zoom-detail');
+    var hotspot = stage.querySelector('.zoom-hotspot');
+    var buttons = document.querySelectorAll('.zoom-toggle button');
+    var captions = document.querySelectorAll('[data-caption]');
+    var OVERVIEW_ASPECT = 1311 / 403, DETAIL_ASPECT = 1600 / 1226, MAX_DETAIL_H = 540;
+    // Predictor-side "Spatial Query" box in sbev_arch.png (pixels 781-893 x 240-311 of 1311 x 403).
+    var BOX = { x: 781 / 1311, y: 240 / 403, w: 112 / 1311, h: 71 / 403 };
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var zoomed = false, busy = false, interacted = false;
+
+    function geometry() {
+      var W = stage.clientWidth;
+      var h0 = W / OVERVIEW_ASPECT;
+      var h1 = Math.min(W / DETAIL_ASPECT, MAX_DETAIL_H);
+      var fw = h1 * DETAIL_ASPECT;
+      return {
+        h0: h0, h1: h1,
+        detail: { x: (W - fw) / 2, y: 0, w: fw, h: h1 },
+        box: { x: BOX.x * W, y: BOX.y * h0, w: BOX.w * W, h: BOX.h * h0 }
+      };
+    }
+
+    function layout() {
+      var g = geometry();
+      stage.style.height = (zoomed ? g.h1 : g.h0) + 'px';
+      detail.style.left = g.detail.x + 'px';
+      detail.style.width = g.detail.w + 'px';
+      detail.style.height = g.detail.h + 'px';
+      overview.style.transformOrigin = (g.box.x + g.box.w / 2) + 'px ' + (g.box.y + g.box.h / 2) + 'px';
+    }
+
+    function setState(z) {
+      zoomed = z;
+      stage.classList.toggle('zoomed', z);
+      detail.setAttribute('aria-hidden', z ? 'false' : 'true');
+      buttons.forEach(function (b) {
+        b.setAttribute('aria-pressed', (b.dataset.view === 'detail') === z ? 'true' : 'false');
+      });
+      captions.forEach(function (c) { c.hidden = (c.dataset.caption === 'detail') !== z; });
+    }
+
+    function go(z) {
+      if (z === zoomed || busy) return;
+      var g = geometry();
+      if (reduceMotion || !stage.animate) { setState(z); layout(); return; }
+
+      busy = true;
+      var timing = { duration: 900, easing: 'cubic-bezier(0.45, 0, 0.2, 1)', fill: 'both' };
+      var fromBox = 'translate(' + (g.box.x - g.detail.x) + 'px, ' + (g.box.y - g.detail.y) + 'px) scale(' + (g.box.w / g.detail.w) + ')';
+      var zoomScale = Math.min(g.detail.w / g.box.w, 8);
+
+      var stageFrames = [{ height: g.h0 + 'px' }, { height: g.h1 + 'px' }];
+      var overviewFrames = [
+        { transform: 'scale(1)', opacity: 1, visibility: 'visible' },
+        { transform: 'scale(' + zoomScale * 0.5 + ')', opacity: 0.6, offset: 0.45 },
+        { transform: 'scale(' + zoomScale + ')', opacity: 0, visibility: 'visible' }
+      ];
+      var detailFrames = [
+        { transform: fromBox, opacity: 0, visibility: 'visible' },
+        { opacity: 1, offset: 0.4 },
+        { transform: 'none', opacity: 1, visibility: 'visible' }
+      ];
+      if (!z) { stageFrames.reverse(); overviewFrames.reverse(); detailFrames.reverse(); }
+
+      var anims = [
+        stage.animate(stageFrames, timing),
+        overview.animate(overviewFrames, timing),
+        detail.animate(detailFrames, timing)
+      ];
+      setState(z);
+      anims[0].onfinish = function () {
+        layout();
+        anims.forEach(function (a) { a.cancel(); });
+        busy = false;
+      };
+    }
+
+    hotspot.addEventListener('click', function () { interacted = true; go(true); });
+    buttons.forEach(function (b) {
+      b.addEventListener('click', function () { interacted = true; go(b.dataset.view === 'detail'); });
+    });
+    window.addEventListener('resize', layout);
+    stage.classList.add('ready');
+    if (overview.complete) layout(); else overview.addEventListener('load', layout);
+    layout();
+
+    // Play the zoom once, the first time the figure is comfortably in view.
+    if (!reduceMotion && 'IntersectionObserver' in window) {
+      var played = false;
+      new IntersectionObserver(function (entries, obs) {
+        if (played || !entries[0].isIntersecting) return;
+        played = true;
+        obs.disconnect();
+        setTimeout(function () { if (!interacted) go(true); }, 1200);
+      }, { threshold: 0.9 }).observe(stage);
+    }
+  })();
+</script>
+
+<script>
+  // Offline gain tiles: highlight the matching split's columns in the results table.
+  (function () {
+    var table = document.querySelector('#offline .results-table');
+    function highlight(k, on) {
+      var groupHeader = table.querySelectorAll('thead tr:first-child th')[2 + k];
+      var cells = [groupHeader];
+      table.querySelectorAll('thead tr:nth-child(2) th').forEach(function (th, i) {
+        if (i === 2 * k || i === 2 * k + 1) cells.push(th);
+      });
+      table.querySelectorAll('tbody tr').forEach(function (tr) {
+        cells.push(tr.children[2 + 2 * k], tr.children[3 + 2 * k]);
+      });
+      cells.forEach(function (c) { if (c) c.classList.toggle('col-hl', on); });
+    }
+    document.querySelectorAll('.gain-tile').forEach(function (tile) {
+      var k = +tile.dataset.split;
+      ['mouseenter', 'focus'].forEach(function (e) { tile.addEventListener(e, function () { highlight(k, true); }); });
+      ['mouseleave', 'blur'].forEach(function (e) { tile.addEventListener(e, function () { highlight(k, false); }); });
+    });
+  })();
+</script>
+
+<script>
+  // Table of contents: show after the teaser video, and highlight the section
+  // whose top has passed 40% of the viewport height.
+  (function () {
+    var toc = document.querySelector('.toc');
+    var links = [].slice.call(toc.querySelectorAll('a'));
+    var sections = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+    var teaser = document.getElementById('video');
+    var pending = false;
+
+    function update() {
+      pending = false;
+      toc.classList.toggle('visible', teaser.getBoundingClientRect().bottom < 0);
+      var line = window.innerHeight * 0.4;
+      var current = 0;
+      sections.forEach(function (sec, i) {
+        if (sec.getBoundingClientRect().top <= line) current = i;
+      });
+      links.forEach(function (a, i) { a.classList.toggle('active', i === current); });
+    }
+    function onScroll() {
+      if (!pending) { pending = true; window.requestAnimationFrame(update); }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    update();
+  })();
+</script>
 </body>
 </html>

@@ -1,3 +1,3 @@
-# Distilling Global Traversability Priors
+# Structured Perception Representations for Off-road Dynamics Learning
 
-Project website for "Distilling Global Traversability Priors for Image-based Affordance Prediction in Off-road Environments" (IROS 2026 submission).
+Project website for "Structured Perception Representations for Off-road Dynamics Learning" (CoRL 2026).
