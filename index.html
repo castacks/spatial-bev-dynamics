@@ -44,13 +44,17 @@
       border-top: 1px solid #1f1f1f;
     }
     .hero.is-small .hero-body { padding-top: 3.5rem; padding-bottom: 3.5rem; }
+    #BibTeX { padding-top: 0; }
+    #BibTeX::before { margin-bottom: 3.5rem; }
     .hero.is-small .column.is-four-fifths { flex: none; width: 100%; }
-    .hero.is-small h2.title.is-3 {
+    .hero.is-small h2.title.is-3,
+    #BibTeX h2.title.is-3 {
       counter-increment: sec;
       text-align: left;
       font-size: 1.9rem;
     }
-    .hero.is-small h2.title.is-3::before {
+    .hero.is-small h2.title.is-3::before,
+    #BibTeX h2.title.is-3::before {
       content: counter(sec, decimal-leading-zero);
       display: block;
       margin-bottom: 0.4rem;
@@ -353,6 +357,8 @@
   <symbol id="i-linkedin" viewBox="0 0 448 512"><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"/></symbol>
   <symbol id="i-facebook" viewBox="0 0 512 512"><path d="M512 256C512 114.6 397.4 0 256 0S0 114.6 0 256C0 376 82.7 476.8 194.2 504.5V334.2H141.4V256h52.8V222.3c0-87.1 39.4-127.5 125-127.5c16.2 0 44.2 3.2 55.7 6.4V172c-6-.6-16.5-1-29.6-1c-42 0-58.2 15.9-58.2 57.2V256h83.6l-14.4 78.2H287V510.1C413.8 494.8 512 386.9 512 256h0z"/></symbol>
   <symbol id="i-twitter" viewBox="0 0 512 512"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></symbol>
+  <!-- arXiv logo: Simple Icons (CC0). -->
+  <symbol id="i-arxiv" viewBox="0 0 24 24"><path d="M3.8423 0a1.0037 1.0037 0 0 0-.922.6078c-.1536.3687-.0438.6275.2938 1.1113l6.9185 8.3597-1.0223 1.1058a1.0393 1.0393 0 0 0 .003 1.4229l1.2292 1.3135-5.4391 6.4444c-.2803.299-.4538.823-.2971 1.1986a1.0253 1.0253 0 0 0 .9585.635.9133.9133 0 0 0 .6891-.3405l5.783-6.126 7.4902 8.0051a.8527.8527 0 0 0 .6835.2597.9575.9575 0 0 0 .8777-.6138c.1577-.377-.017-.7502-.306-1.1407l-7.0518-8.3418 1.0632-1.13a.9626.9626 0 0 0 .0089-1.3165L4.6336.4639s-.3733-.4535-.768-.463zm0 .272h.0166c.2179.0052.4874.2715.5644.3639l.005.006.0052.0055 10.169 10.9905a.6915.6915 0 0 1-.0072.945l-1.0666 1.133-1.4982-1.7724-8.5994-10.39c-.3286-.472-.352-.6183-.2592-.841a.7307.7307 0 0 1 .6704-.4401Zm14.341 1.5701a.877.877 0 0 0-.6554.2418l-5.6962 6.1584 1.6944 1.8319 5.3089-6.5138c.3251-.4335.479-.6603.3247-1.0292a1.1205 1.1205 0 0 0-.9763-.689zm-7.6557 12.2823 1.3186 1.4135-5.7864 6.1295a.6494.6494 0 0 1-.4959.26.7516.7516 0 0 1-.706-.4669c-.1119-.2682.0359-.6864.2442-.9083l.0051-.0055.0047-.0055z"/></symbol>
   <symbol id="i-medium" viewBox="0 0 640 512"><path d="M180.5,74.262C80.813,74.262,0,155.633,0,256S80.819,437.738,180.5,437.738,361,356.373,361,256,280.191,74.262,180.5,74.262Zm288.25,10.646c-49.845,0-90.245,76.619-90.245,171.095s40.406,171.1,90.251,171.1,90.251-76.619,90.251-171.1H559C559,161.5,518.6,84.908,468.752,84.908Zm139.506,17.821c-17.526,0-31.735,68.628-31.735,153.274s14.2,153.274,31.735,153.274S640,340.631,640,256C640,171.351,625.785,102.729,608.258,102.729Z"/></symbol>
 </svg>
 
@@ -413,7 +419,6 @@
 
           <div class="column has-text-centered">
             <div class="publication-links">
-              <!-- TODO: swap for the arXiv link once it's up. -->
               <span class="link-block">
                 <a href="assets/structured_perception_representations_dynamics_corl2026.pdf" target="_blank" rel="noopener"
                    class="external-link button is-normal is-rounded is-dark">
@@ -421,6 +426,15 @@
                       <svg class="svg-icon" aria-hidden="true"><use href="#i-file-pdf"/></svg>
                   </span>
                   <span>Paper</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2610.22900v1" target="_blank" rel="noopener"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <svg class="svg-icon" aria-hidden="true"><use href="#i-arxiv"/></svg>
+                  </span>
+                  <span>arXiv</span>
                 </a>
               </span>
               <span class="link-block">
@@ -813,6 +827,30 @@
 </section>
 
 
+<section class="hero is-small" id="acknowledgements">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Acknowledgements</h2>
+          <div class="content has-text-justified">
+            <p>
+              We thank Geethika Hemkumar and Saksham Sharma for their extensive support with field testing for the
+              submission and rebuttal. We also thank Jason Gibson and Anoushka Alavilli for insightful discussions during
+              the beginning of this work. Micah Nye is supported by the Rales Fellowship. This work was supported by DSO
+              National Laboratories by grant #DSOCO25020 RPS&nbsp;22. This work used Bridges-2 at Pittsburgh
+              Supercomputing Center through allocation cis220039p from the Advanced Cyberinfrastructure Coordination
+              Ecosystem: Services &amp; Support (ACCESS) program, which is supported by National Science Foundation grants
+              #2138259, #2138286, #2138307, #2137603, and #2138296.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
 <section class="section" id="BibTeX">
   <div class="container is-max-desktop content">
     <h2 class="title is-3">BibTeX</h2>
@@ -831,7 +869,7 @@
     <div id="blocks">
       <div id="block1">
         <a href="https://theairlab.org/">
-          <img src="static/images/Horizontal@2x.png" alt="AirLab Logo" style="width:60%;">
+          <img src="static/images/airlab-logo.svg" width="381" height="83" alt="AirLab Logo" style="width:60%;">
         </a>
       </div>
       <div id="block2">
