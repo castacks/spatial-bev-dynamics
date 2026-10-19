@@ -28,6 +28,28 @@
     .publication-venue { margin: 0 auto; }
 
     img[width][height] { height: auto; }
+
+    /* Header button for something not released yet. */
+    .button.is-coming-soon {
+      background: #ececec;
+      border-color: transparent;
+      color: #8a8a8a;
+      cursor: default;
+      pointer-events: none;
+      margin-top: 5px;      /* match .link-block a in index.css */
+      margin-bottom: 5px;
+    }
+    .button.is-coming-soon .soon-tag {
+      margin-left: 0.5rem;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      background: #fff;
+      color: #8a8a8a;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
     .svg-icon { width: 1em; height: 1em; fill: currentColor; vertical-align: -0.125em; overflow: visible; }
     .svg-icon.is-lg { width: 1.33em; height: 1.33em; vertical-align: -0.25em; }
 
@@ -446,15 +468,16 @@
                   <span>Video</span>
                 </a>
               </span>
-              <!-- TODO: code URL, or delete this button if no code release. -->
+              <!-- Code not released yet: greyed out and not clickable. When it is, turn this back into
+                   <a href="REPO_URL" target="_blank" rel="noopener" class="external-link button is-normal is-rounded is-dark">. -->
               <span class="link-block">
-                <a href="#"
-                   class="external-link button is-normal is-rounded is-dark">
+                <span class="button is-normal is-rounded is-coming-soon" aria-disabled="true" title="Code coming soon">
                   <span class="icon">
                       <svg class="svg-icon" aria-hidden="true"><use href="#i-github"/></svg>
                   </span>
                   <span>Code</span>
-                </a>
+                  <span class="soon-tag">Coming soon</span>
+                </span>
               </span>
             </div>
           </div>
@@ -646,7 +669,7 @@
             <p>
               We train on 2.2&nbsp;hr of spring, summer and fall driving at one site, then test on 2.1&nbsp;hr of
               held-out data across two sites, 34% of it in winter with 6&ndash;9&Prime; of snow and thick ice never seen
-              in training. With dense maps, SpatialBEV reduces error relative to the strongest baseline on each split by
+              in training. We train and evaluate with sparse maps and dense, inpainted maps from <a href=https://www.roboticsproceedings.org/rss22/p070.pdf>Triest et al.</a> With dense maps, SpatialBEV reduces error relative to the strongest baseline on each split by
               17.1% on Snow, 10.7% on Slopes, 19.9% on Speed and 17.1% overall.
             </p>
             <img src="assets/figures/sbev_offline_quant.webp" width="1600" height="688" loading="lazy" decoding="async"
